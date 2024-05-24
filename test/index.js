@@ -1,4 +1,4 @@
-const TESTNET_MOCK_SERVER = 'http://47.93.101.243';
+const TESTNET_MOCK_SERVER = 'http://39.100.93.109';
 const CONST = require('../src/CONST');
 const util = require('../src/util');
 
