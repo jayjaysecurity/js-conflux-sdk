@@ -48,6 +48,26 @@ class CFX extends RPCMethodFactory {
         responseFormatter: format.bigUInt,
       },
       {
+        method: 'cfx_maxPriorityFeePerGas',
+        alias: 'maxPriorityFeePerGas',
+        responseFormatter: format.bigUInt,
+      },
+      {
+        method: 'cfx_getFeeBurnt',
+        alias: 'getFeeBurnt',
+        responseFormatter: format.bigUInt,
+      },
+      {
+        method: 'cfx_feeHistory',
+        alias: 'feeHistory',
+        requestFormatters: [
+          format.bigUIntHex,
+          format.epochNumber,
+          format.any, // f64 array
+        ],
+        responseFormatter: cfxFormat.feeHistory,
+      },
+      {
         method: 'cfx_getInterestRate',
         requestFormatters: [
           format.epochNumberOrUndefined,
@@ -449,12 +469,22 @@ class CFX extends RPCMethodFactory {
       options.epochHeight = await this.epochNumber();
     }
 
+    // auto detect transaction type
+    let baseFeePerGas;
+    if (options.type === undefined) {
+      const block = await this.getBlockByEpochNumber(options.epochHeight, false);
+      baseFeePerGas = block.baseFeePerGas;
+
+      const pre1559Type = options.accessList ? CONST.TRANSACTION_TYPE_EIP2930 : CONST.TRANSACTION_TYPE_LEGACY;
+      options.type = baseFeePerGas ? CONST.TRANSACTION_TYPE_EIP1559 : pre1559Type;
+    }
+
     if (options.gas === undefined || options.storageLimit === undefined) {
       let gas;
       let storageLimit;
 
       const isToUser = options.to && addressUtil.isValidCfxAddress(options.to) && decodeCfxAddress(options.to).type === ADDRESS_TYPES.USER;
-      if (isToUser && !options.data) {
+      if (isToUser && !options.data && !options.accessList) {
         gas = CONST.TRANSACTION_GAS;
         storageLimit = CONST.TRANSACTION_STORAGE_LIMIT;
       } else {
@@ -479,12 +509,28 @@ class CFX extends RPCMethodFactory {
       }
     }
 
-    if (options.gasPrice === undefined) {
-      if (defaultGasPrice === undefined) {
-        const gasPrice = await this.gasPrice();
-        options.gasPrice = Number(gasPrice) === 0 ? CONST.MIN_GAS_PRICE : gasPrice;
-      } else {
-        options.gasPrice = defaultGasPrice;
+    // auto fill gasPrice
+    if (options.type === CONST.TRANSACTION_TYPE_LEGACY || options.type === CONST.TRANSACTION_TYPE_EIP2930) {
+      if (options.gasPrice === undefined) {
+        if (defaultGasPrice === undefined) {
+          const gasPrice = await this.gasPrice();
+          options.gasPrice = Number(gasPrice) === 0 ? CONST.MIN_GAS_PRICE : gasPrice;
+        } else {
+          options.gasPrice = defaultGasPrice;
+        }
+      }
+    }
+    // auto fill maxPriorityFeePerGas and maxFeePerGas
+    if (options.type === CONST.TRANSACTION_TYPE_EIP1559) {
+      if (!options.maxPriorityFeePerGas || !options.maxFeePerGas) {
+        options.maxPriorityFeePerGas = await this.maxPriorityFeePerGas();
+
+        if (!baseFeePerGas) {
+          const block = await this.getBlockByEpochNumber(options.epochHeight, false);
+          baseFeePerGas = block.baseFeePerGas;
+        }
+
+        options.maxFeePerGas = options.maxPriorityFeePerGas + (baseFeePerGas * BigInt(4)) / BigInt(3);
       }
     }
 
