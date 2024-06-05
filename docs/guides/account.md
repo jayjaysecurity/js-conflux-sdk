@@ -63,7 +63,7 @@ console.log(msg.from);
 
 ## HD Wallet
 
-If you want to use account from mnemonic, there is a independent package `@conflux-dev/hdwallet` can fullfill your requirements.
+If you want to use account from mnemonic, there is a independent package `@conflux-dev/hdwallet` can fulfill your requirements.
 
 First step is install it by npm
 

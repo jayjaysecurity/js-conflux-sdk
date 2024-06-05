@@ -244,7 +244,7 @@ console.log(decoded);
 
 ### BigNumber
 
-> Note: when interacting with contract and if your parameter is bigger than `Number.MAX_SAFE_INTEGER`, you should use string represention of the number or BigInt.
+> Note: when interacting with contract and if your parameter is bigger than `Number.MAX_SAFE_INTEGER`, you should use string representation of the number or BigInt.
 
 ```javascript
 // use string

@@ -195,7 +195,7 @@ When sending transaction if you specify the `gasPrice` it will be used, if not i
 
 If both `gasPrice` and `defaultGasPrice` is not specified, the SDK will fill the result of `getGasPrice()` to it.
 
-Currentlly set the gasPrice to `1 Drip` will enough to send most transactions.
+Currently set the gasPrice to `1 Drip` will enough to send most transactions.
 
 ### `gas`
 
@@ -244,7 +244,7 @@ main();
 
 ### Why my transaction is always pending ?
 
-If your transaction alway pending in the pool, normally you have use a incorrect `nonce` or your `balance` is not enough. You can get the transaction info by it's hash, and check it's nonce with your account's nonce, and check your balance is enough to cover the value + gasPrice \* gas + storageLimit.
+If your transaction always pending in the pool, normally you have use a incorrect `nonce` or your `balance` is not enough. You can get the transaction info by it's hash, and check it's nonce with your account's nonce, and check your balance is enough to cover the value + gasPrice \* gas + storageLimit.
 
 ### Why my transaction failed?
 
